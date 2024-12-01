@@ -33,6 +33,12 @@ class RoomSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+    
+    def validate(self, data):
+        # Eğer kapasite sıfır veya negatifse hata fırlatıyoruz
+        if data.get('max_capacity', 0) <= 0:
+            raise serializers.ValidationError("Max capacity must be greater than 0.")
+        return data
 
 
 # Round Serializer

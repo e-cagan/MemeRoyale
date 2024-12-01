@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "api",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework.authtoken",
     "corsheaders",
     "channels",
     "django.contrib.admin",
@@ -53,7 +54,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',  # Tüm API'lere erişim için doğrulama gerektir
+        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',  # Tüm API'lere erişim için doğrulama gerektir
     ),
 }
 
@@ -137,6 +139,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -165,5 +170,5 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Cors settings configuration
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWS_CREDENTIALS = True

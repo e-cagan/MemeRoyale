@@ -47,7 +47,7 @@ class Room(models.Model):
     theme = models.CharField(max_length=100, choices=THEME_CHOICES, blank=True)
     status = models.CharField(max_length=20, choices=ROOM_STATUS_CHOICES, default='waiting')
     duration = models.PositiveIntegerField(default=300)
-    
+    name = models.CharField(max_length=255, default=f"Room {id}")
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
 
@@ -55,21 +55,23 @@ class Room(models.Model):
         return self.participants.count() >= self.max_capacity
 
     def add_participant(self, user):
-        if not self.is_full():
-            self.participants.add(user)
-            return True
-        return False
+        if self.is_full():
+            return False
+        self.participants.add(user)
+        return True
 
     def remove_participant(self, user):
         self.participants.remove(user)
-        return True
+        return not self.is_full()
 
     def start_game(self):
         self.start_time = timezone.now()
+        self.status = 'active'
         self.save()
 
     def end_game(self):
         self.end_time = timezone.now()
+        self.status = 'ended'
         self.save()
 
     def close_room(self):
@@ -95,6 +97,10 @@ class Round(models.Model):
     def time_remaining(self):
         end_time = self.created_at + timedelta(seconds=self.room.duration)
         return max((end_time - now()).total_seconds(), 0)
+    
+    def start_round(self):
+        self.meme_submission_end_time = self.created_at + timedelta(seconds=self.room.duration)
+        self.save()
 
     def start_voting(self):
         self.voting_start_time = now()
@@ -124,7 +130,7 @@ class Round(models.Model):
 class Meme(models.Model):
     round = models.ForeignKey(Round, on_delete=models.CASCADE, related_name='memes')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='memes')
-    image = models.ImageField(upload_to='meme_images/')
+    image_url = models.URLField(default=None)
     caption = models.TextField(blank=True)
     votes = models.ManyToManyField(User, related_name='voted_memes', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
